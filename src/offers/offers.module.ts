@@ -7,6 +7,7 @@ import { UsersModule } from 'src/users/users.module'
 import { ApplicationsServices } from './services/application.service'
 import { Application } from './domain/entities/application.entity'
 import { ApplicationsController } from './controller/application.controller'
+import { AiModule } from 'src/ai/ai.module'
 
 @Module({
   imports: [
@@ -14,7 +15,8 @@ import { ApplicationsController } from './controller/application.controller'
       Offer,
       Application
     ]),
-    UsersModule
+    UsersModule,
+    AiModule
   ],
   providers: [OffersService, ApplicationsServices],
   controllers: [OffersController, ApplicationsController]

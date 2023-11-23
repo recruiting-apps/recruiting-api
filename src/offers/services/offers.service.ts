@@ -9,13 +9,15 @@ import { UsersService } from 'src/users/users.service'
 import { ApplicationsServices } from './application.service'
 import { Status } from '../domain/enum/status.enum'
 import { type Application } from '../domain/entities/application.entity'
+import { AiService } from 'src/ai/ai.service'
 
 @Injectable()
 export class OffersService {
   constructor (
     @InjectRepository(Offer) private readonly offersRepository: MongoRepository<Offer>,
     private readonly applicationsService: ApplicationsServices,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly aiService: AiService
   ) { }
 
   async findAll (userId: string): Promise<Offer[]> {
@@ -124,6 +126,10 @@ export class OffersService {
 
     const user = await this.usersService.findOne(userId)
 
+    if (user.cvPath === '' || user.cvPath === null) {
+      throw new BadRequestException('You need to upload your CV before applying to an offer')
+    }
+
     const application = await this.applicationsService.create(user.id, {
       comments: '',
       status: Status.PENDING
@@ -215,18 +221,15 @@ export class OffersService {
       throw new NotFoundException('Offer not found')
     }
 
-    // TODO: Connection with AI API to get the best application
-    const random = Math.floor(Math.random() * offer.applications.length)
+    const application = await this.aiService.getBetterApplicantUsingAi(offer)
 
-    const application = offer.applications.find((item, index) => index === random)
-
-    if (!application) {
+    if (application === null) {
       throw new NotFoundException('Application not found')
     }
 
     application.status = Status.ACCEPTED
     const otherApplications = offer.applications
-      .filter((item) => item.id !== application.id)
+      .filter((item) => item.id !== application._id.toString())
       .map((item) => {
         item.status = Status.REJECTED
         return item
@@ -234,8 +237,10 @@ export class OffersService {
 
     offer.applications = [application, ...otherApplications]
 
+    const { _id, ...applicationDto } = application
+
     try {
-      await this.applicationsService.update(application.id, application)
+      await this.applicationsService.update(application._id.toString(), applicationDto)
       await this.offersRepository.update(id, offer)
       return await this.findOne(id)
     } catch (error) {

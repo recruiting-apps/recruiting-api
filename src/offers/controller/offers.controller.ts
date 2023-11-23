@@ -10,7 +10,7 @@ import {
   Query,
   UseInterceptors
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { OffersService } from '../services/offers.service'
 import { CreateOfferDto, UpdateOfferDto } from '../domain/dto/offer.dto'
 import { type Offer } from '../domain/entities/offer.entity'
@@ -26,6 +26,7 @@ export class OffersController {
     private readonly offersService: OffersService
   ) {}
 
+  @ApiQuery({ name: 'userId', required: false })
   @Get()
   async findAll (
     @Query('userId') userId: string = ''

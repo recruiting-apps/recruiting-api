@@ -59,8 +59,10 @@ export class ApplicationsServices {
       throw new NotFoundException('Application not found')
     }
 
+    const applicationUpdated = this.applicationRepository.create(applicationDto)
+
     try {
-      await this.applicationRepository.update(id, applicationDto)
+      await this.applicationRepository.update(id, applicationUpdated)
       return await this.findOne(id)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
