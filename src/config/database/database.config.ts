@@ -12,9 +12,10 @@ const ENTITIES_DIR = path.join(__dirname, '/**/*.entity{.ts,.js}')
 export const fromEnv = (configService: ConfigService): Record<string, unknown> => ({
   // type: what database you want to use
   type: configService.get<string>('database.type', 'mongodb'),
-  host: configService.get<string>('database.host', 'localhost'),
-  port: configService.get<number>('database.port', 27017),
-  database: configService.get<string>('database.database', ''),
+  // host: configService.get<string>('database.host', 'localhost'),
+  // port: configService.get<number>('database.port', 27017),
+  // database: configService.get<string>('database.database', ''),
+  url: configService.get<string>('database.url', ''),
 
   // entities: where are the entities located
   entities: [ENTITIES_DIR],
