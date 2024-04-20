@@ -1,22 +1,24 @@
-import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm'
-import { Exclude, Expose } from 'class-transformer'
 import * as argon2 from 'argon2'
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Exclude, Expose } from 'class-transformer'
 import { Role } from '../enums/role.enum'
+import { Application } from 'src/offers/domain/entities/application.entity'
+import { Offer } from 'src/offers/domain/entities/offer.entity'
 
 @Entity({
   name: 'users'
 })
 export class User {
-  @ObjectIdColumn()
-    _id: ObjectId
+  @PrimaryGeneratedColumn()
+    id: number
 
-  @Column()
+  @Column({ name: 'name', type: 'varchar', length: 100 })
     name: string
 
-  @Column()
+  @Column({ name: 'last_name', type: 'varchar', length: 100 })
     lastName: string
 
-  @Column()
+  @Column({ type: 'varchar', length: 100, unique: true })
     email: string
 
   @Exclude()
@@ -26,49 +28,53 @@ export class User {
   @Column({ enum: Role, default: Role.APPLICANT })
     role: string
 
-  @Column()
+  @Column({ name: 'born_date', type: 'date' })
     bornDate: Date
 
-  @Column()
+  @Column({ name: 'description', type: 'text' })
     description: string
 
-  @Column()
+  @Column({ type: 'varchar', length: 15 })
     phone: string
 
-  @Column()
+  @Column({ type: 'varchar', length: 100 })
     address: string
 
-  @Column()
+  @Column({ type: 'varchar', length: 100 })
     education: string
 
-  @Column()
+  @Column({ name: 'work_experience', type: 'text' })
     workExperience: string
 
-  @Column()
+  @Column({ name: 'abilities', type: 'json', default: '[]' })
     abilities: string[]
 
-  @Column()
+  @Column({ name: 'cv_path', type: 'text' })
     cvPath: string
 
-  @Column()
+  @Column({ name: 'profile_image_path', type: 'text' })
     profileImagePath: string
 
-  @Column()
+  @Column({ type: 'varchar', length: 100 })
     profession: string
 
-  @Column({ default: false })
+  @Column({ name: 'google_account', default: false })
     googleAccount: boolean
+
+  @OneToMany(() => Application, application => application.user)
+    applications: Application[]
+
+  @OneToMany(() => Offer, offer => offer.user)
+    offers: Offer[]
 
   @Expose()
   get fullName (): string {
     return `${this.name} ${this.lastName}`
   }
 
-  @Expose({
-    name: 'id'
-  })
-  get id (): string {
-    return this._id.toString()
+  @BeforeInsert()
+  async hashPassword (): Promise<void> {
+    this.password = await argon2.hash(this.password)
   }
 
   async comparePassword (attempt: string): Promise<boolean> {

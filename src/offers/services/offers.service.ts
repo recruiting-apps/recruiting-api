@@ -1,48 +1,46 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getErrorMessage } from 'src/common/helpers/error.helper'
-import { MongoRepository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { Offer } from '../domain/entities/offer.entity'
 import { type UpdateOfferDto, type CreateOfferDto } from '../domain/dto/offer.dto'
-import { ObjectId } from 'mongodb'
 import { UsersService } from 'src/users/users.service'
-import { ApplicationsServices } from './application.service'
+import { ApplicationsService } from './application.service'
 import { Status } from '../domain/enum/status.enum'
-import { type Application } from '../domain/entities/application.entity'
 import { AiService } from 'src/ai/ai.service'
 
 @Injectable()
 export class OffersService {
   constructor (
-    @InjectRepository(Offer) private readonly offersRepository: MongoRepository<Offer>,
-    private readonly applicationsService: ApplicationsServices,
+    @InjectRepository(Offer) private readonly offersRepository: Repository<Offer>,
+    private readonly applicationsService: ApplicationsService,
     private readonly usersService: UsersService,
     private readonly aiService: AiService
   ) { }
 
-  async findAll (userId: string): Promise<Offer[]> {
-    const offers = await this.offersRepository.find({
-      relations: ['user']
-    })
-
-    if (userId === '') return offers
-
-    return offers.filter((offer) => offer.user._id.toString() === userId)
-  }
-
-  async findMyApplications (userId: string): Promise<Offer[]> {
-    const offers = await this.offersRepository.find({
-      relations: ['user', 'applications']
-    })
-
-    return offers.filter((offer) => {
-      return offer.applications.some((item) => item.user._id.toString() === userId)
+  async findAll (userId: number): Promise<Offer[]> {
+    return await this.offersRepository.find({
+      where: {
+        user: {
+          id: userId === 0 ? undefined : userId
+        }
+      },
+      relations: {
+        user: true,
+        applications: true
+      }
     })
   }
 
-  async findOne (id: string): Promise<Offer> {
+  async findOne (id: number): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) }
+      where: { id },
+      relations: {
+        user: true,
+        applications: {
+          user: true
+        }
+      }
     })
 
     if (offer === null) {
@@ -52,12 +50,13 @@ export class OffersService {
     return offer
   }
 
-  async create (userId: string, offerDto: CreateOfferDto): Promise<Offer> {
+  async create (userId: number, offerDto: CreateOfferDto): Promise<Offer> {
     const user = await this.usersService.findOne(userId)
-    const offer = this.offersRepository.create(offerDto)
-
-    offer.user = user
-    offer.applications = []
+    const offer = this.offersRepository.create({
+      ...offerDto,
+      user,
+      applications: []
+    })
 
     try {
       return await this.offersRepository.save(offer)
@@ -66,9 +65,27 @@ export class OffersService {
     }
   }
 
-  async update (id: string, offerDto: UpdateOfferDto): Promise<Offer> {
+  async update (id: number, offerDto: UpdateOfferDto): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) }
+      where: { id }
+    })
+
+    if (offer === null) {
+      throw new NotFoundException('Offer not found')
+    }
+
+    const offerUpdated = this.offersRepository.merge(offer, offerDto)
+
+    try {
+      return await this.offersRepository.save(offerUpdated)
+    } catch (error) {
+      throw new InternalServerErrorException(getErrorMessage(error))
+    }
+  }
+
+  async remove (id: number): Promise<Offer> {
+    const offer = await this.offersRepository.findOne({
+      where: { id }
     })
 
     if (offer === null) {
@@ -76,45 +93,20 @@ export class OffersService {
     }
 
     try {
-      await this.offersRepository.update(id, offerDto)
-      return await this.findOne(id)
+      return await this.offersRepository.remove(offer)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
     }
   }
 
-  async remove (id: string): Promise<Offer> {
+  async apply (id: number, userId: number): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) }
-    })
-
-    if (offer === null) {
-      throw new NotFoundException('Offer not found')
-    }
-
-    try {
-      await this.offersRepository.delete(id)
-      return offer
-    } catch (error) {
-      throw new InternalServerErrorException(getErrorMessage(error))
-    }
-  }
-
-  findApplication (offer: Offer, userId: string, throwException: boolean): boolean {
-    const exists = offer.applications.some((item) => item.user._id.toString() === userId)
-
-    if (exists && throwException) {
-      throw new BadRequestException('You already applied to this offer')
-    }
-
-    return exists
-  }
-
-  async apply (id: string, userId: string): Promise<Offer> {
-    const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) },
+      where: { id },
       relations: {
-        applications: true
+        user: true,
+        applications: {
+          user: true
+        }
       }
     })
 
@@ -122,15 +114,19 @@ export class OffersService {
       throw new NotFoundException('Offer not found')
     }
 
-    this.findApplication(offer, userId, true)
+    const { user, applications } = offer
 
-    const user = await this.usersService.findOne(userId)
+    const doesUserAlreadyApplied = applications.some((item) => item.user.id === userId)
+
+    if (doesUserAlreadyApplied) {
+      throw new BadRequestException('You already applied to this offer')
+    }
 
     if (user.cvPath === '' || user.cvPath === null) {
       throw new BadRequestException('You need to upload your CV before applying to an offer')
     }
 
-    const application = await this.applicationsService.create(user.id, {
+    const application = await this.applicationsService.create(userId, offer.id, {
       comments: '',
       status: Status.PENDING
     })
@@ -138,83 +134,15 @@ export class OffersService {
     offer.applications.push(application)
 
     try {
-      await this.offersRepository.update(id, offer)
-      return await this.findOne(id)
-    } catch (error) {
-      throw new InternalServerErrorException(getErrorMessage(error))
-    }
-  }
-
-  async cancelApplication (id: string, applicationId: string): Promise<Offer> {
-    const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) }
-    })
-
-    if (offer === null) {
-      throw new NotFoundException('Offer not found')
-    }
-
-    const exists = offer.applications.some((item) => item._id.toString() === applicationId)
-
-    if (!exists) {
-      return offer
-    }
-
-    const application = await this.applicationsService.findOne(applicationId)
-
-    offer.applications = offer.applications.filter((item) =>
-      item._id.toString() !== application._id.toString()
-    )
-
-    try {
-      await this.applicationsService.remove(applicationId)
-      await this.offersRepository.update(id, offer)
-      return await this.findOne(id)
-    } catch (error) {
-      const applicationToRemove = await this.applicationsService.getOne(applicationId)
-      if (applicationToRemove) {
-        await this.applicationsService.remove(applicationId)
-      }
-      throw new InternalServerErrorException(getErrorMessage(error))
-    }
-  }
-
-  async updateApplication (id: string, applicationId: string, status: Status): Promise<Offer> {
-    const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) }
-    })
-
-    if (offer === null) {
-      throw new NotFoundException('Offer not found')
-    }
-
-    const application = await this.applicationsService.findOne(applicationId)
-
-    application.status = status
-
-    try {
-      await this.applicationsService.update(applicationId, application)
       return await this.offersRepository.save(offer)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
     }
   }
 
-  async getApplications (id: string): Promise<Application[]> {
+  async getBetterApplication (id: number): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) }
-    })
-
-    if (offer === null) {
-      throw new NotFoundException('Offer not found')
-    }
-
-    return offer.applications
-  }
-
-  async getBetterApplication (id: string): Promise<Offer> {
-    const offer = await this.offersRepository.findOne({
-      where: { _id: new ObjectId(id) }
+      where: { id }
     })
 
     if (offer === null) {
@@ -229,19 +157,14 @@ export class OffersService {
 
     application.status = Status.ACCEPTED
     const otherApplications = offer.applications
-      .filter((item) => item.id !== application._id.toString())
+      .filter((item) => item.id !== application.id)
       .map((item) => {
         item.status = Status.REJECTED
         return item
       })
 
-    offer.applications = [application, ...otherApplications]
-
-    const { _id, ...applicationDto } = application
-
     try {
-      await this.applicationsService.update(application._id.toString(), applicationDto)
-      await this.offersRepository.update(id, offer)
+      await this.applicationsService.updateMany([application, ...otherApplications])
       return await this.findOne(id)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))

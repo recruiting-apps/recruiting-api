@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -29,16 +30,9 @@ export class OffersController {
   @ApiQuery({ name: 'userId', required: false })
   @Get()
   async findAll (
-    @Query('userId') userId: string = ''
+    @Query('userId', ParseIntPipe) userId: number = 0
   ): Promise<Offer[]> {
     return await this.offersService.findAll(userId)
-  }
-
-  @Get('my-applications')
-  async findMyApplications (
-    @CurrentUser() user: User
-  ): Promise<Offer[]> {
-    return await this.offersService.findMyApplications(user.id)
   }
 
   @Post()
@@ -50,26 +44,26 @@ export class OffersController {
 
   @Post(':id/better-application')
   async betterApplication (
-    @Param('id') id: string
+    @Param('id', ParseIntPipe) id: number
   ): Promise<Offer> {
     return await this.offersService.getBetterApplication(id)
   }
 
   @Get(':id')
-  async findOne (@Param('id') id: string): Promise<Offer> {
+  async findOne (@Param('id', ParseIntPipe) id: number): Promise<Offer> {
     return await this.offersService.findOne(id)
   }
 
   @Patch(':id')
   async update (
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
       @Body() updateOfferDto: UpdateOfferDto
   ): Promise<Offer> {
     return await this.offersService.update(id, updateOfferDto)
   }
 
   @Delete(':id')
-  async remove (@Param('id') id: string): Promise<Offer> {
+  async remove (@Param('id', ParseIntPipe) id: number): Promise<Offer> {
     return await this.offersService.remove(id)
   }
 }

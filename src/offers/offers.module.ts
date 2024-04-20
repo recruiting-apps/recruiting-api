@@ -4,7 +4,7 @@ import { OffersController } from './controller/offers.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Offer } from './domain/entities/offer.entity'
 import { UsersModule } from 'src/users/users.module'
-import { ApplicationsServices } from './services/application.service'
+import { ApplicationsService } from './services/application.service'
 import { Application } from './domain/entities/application.entity'
 import { ApplicationsController } from './controller/application.controller'
 import { AiModule } from 'src/ai/ai.module'
@@ -18,7 +18,7 @@ import { AiModule } from 'src/ai/ai.module'
     UsersModule,
     AiModule
   ],
-  providers: [OffersService, ApplicationsServices],
+  providers: [OffersService, ApplicationsService],
   controllers: [OffersController, ApplicationsController]
 })
 export class OffersModule {}

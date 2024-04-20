@@ -1,28 +1,24 @@
-
-import { type ConfigService } from '@nestjs/config'
 import * as path from 'path'
+import { type DataSourceOptions } from 'typeorm'
+import * as dotenv from 'dotenv'
+
+dotenv.config()
 
 const ENTITIES_DIR = path.join(__dirname, '/**/*.entity{.ts,.js}')
+// const MIGRATIONS_DIR = path.join(__dirname, '/**/migrations/*{.ts,.js}')
 
-/**
- * It takes a ConfigService as an argument and returns an object with the database configuration.
- * @param {ConfigService} configService - ConfigService - this is the service that allow us to
- * get and cast the environment variables.
- */
-export const fromEnv = (configService: ConfigService): Record<string, unknown> => ({
-  // type: what database you want to use
-  type: configService.get<string>('database.type', 'mongodb'),
+export const dataSourceOptions: DataSourceOptions = {
+  type: (process.env.DATABASE_TYPE ?? 'postgres') as 'postgres',
+  url: process.env.DATABASE_URL ?? '',
   // host: configService.get<string>('database.host', 'localhost'),
-  // port: configService.get<number>('database.port', 27017),
+  // port: configService.get<number>('database.port', 3306),
+  // username: configService.get<string>('database.username', ''),
+  // password: configService.get<string>('database.password', ''),
   // database: configService.get<string>('database.database', ''),
-  url: configService.get<string>('database.url', ''),
 
-  // entities: where are the entities located
   entities: [ENTITIES_DIR],
-  // autoLoadEntities: automatically load entities
-  autoLoadEntities: true,
-  // synchronize: automatically synchronize the database
+  // logging: true,
+
+  // synchronize: automatically synchronize the database (only for development)
   synchronize: true
-  // migrationsRun: true
-  // migrations: [path.join(__dirname, '../database/migrations/**/*{.ts,.js}')]
-})
+}

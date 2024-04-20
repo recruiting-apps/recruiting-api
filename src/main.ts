@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core'
-import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import { ValidationPipe, VersioningType } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import * as dotenv from 'dotenv'
 
-const configService = new ConfigService()
+dotenv.config()
 
 async function bootstrap (): Promise<void> {
   const app = await NestFactory.create(AppModule)
@@ -38,9 +38,8 @@ async function bootstrap (): Promise<void> {
   const document = SwaggerModule.createDocument(app, config)
   SwaggerModule.setup('api-docs', app, document)
 
-  const PORT = configService.get<number>('port', 3000)
+  const PORT = Number(process.env.PORT) ?? 3000
   await app.listen(PORT)
-    .catch((error) => { console.error(error) })
 }
 
 void bootstrap()

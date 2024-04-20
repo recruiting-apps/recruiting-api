@@ -1,8 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { User } from './domain/entities/user.entity'
-import { MongoRepository } from 'typeorm'
-import { ObjectId } from 'mongodb'
+import { Repository } from 'typeorm'
 import { type UpdateUserDto, type CreateUserDto } from './domain/dto/user.dto'
 import { getErrorMessage } from 'src/common/helpers/error.helper'
 import * as argon2 from 'argon2'
@@ -10,7 +9,7 @@ import * as argon2 from 'argon2'
 @Injectable()
 export class UsersService {
   constructor (
-    @InjectRepository(User) private readonly usersRepository: MongoRepository<User>
+    @InjectRepository(User) private readonly usersRepository: Repository<User>
   ) {}
 
   async findAll (): Promise<User[]> {
@@ -35,9 +34,11 @@ export class UsersService {
     })
   }
 
-  async findOne (id: string): Promise<User> {
+  async findOne (id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
-      where: { _id: new ObjectId(id) }
+      where: {
+        id
+      }
     })
 
     if (user === null) {
@@ -58,8 +59,6 @@ export class UsersService {
 
     const user = this.usersRepository.create(userDto)
 
-    user.password = await argon2.hash(user.password)
-
     try {
       return await this.usersRepository.save(user)
     } catch (error) {
@@ -67,28 +66,27 @@ export class UsersService {
     }
   }
 
-  async update (id: string, userDto: UpdateUserDto): Promise<User> {
+  async update (id: number, userDto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepository.findOne({
-      where: { _id: new ObjectId(id) }
+      where: { id }
     })
 
     if (user === null) {
       throw new NotFoundException('User not found')
     }
 
+    const userUpdated = this.usersRepository.merge(user, userDto)
+
     try {
-      await this.usersRepository.update(id, userDto)
-      return await this.findOne(id)
+      return await this.usersRepository.save(userUpdated)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
     }
   }
 
-  async changePassword (id: string, password: string): Promise<User> {
+  async changePassword (id: number, password: string): Promise<User> {
     const user = await this.usersRepository.findOne({
-      where: {
-        id
-      }
+      where: { id }
     })
 
     if (user === null) {
@@ -105,9 +103,9 @@ export class UsersService {
     }
   }
 
-  async remove (id: string): Promise<User> {
+  async remove (id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
-      where: { _id: new ObjectId(id) }
+      where: { id }
     })
 
     if (user === null) {
@@ -115,8 +113,7 @@ export class UsersService {
     }
 
     try {
-      await this.usersRepository.delete(id)
-      return user
+      return await this.usersRepository.remove(user)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
     }

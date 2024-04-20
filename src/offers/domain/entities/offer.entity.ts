@@ -1,5 +1,4 @@
-import { Entity, ObjectIdColumn, type ObjectId, Column } from 'typeorm'
-import { Expose } from 'class-transformer'
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm'
 import { User } from 'src/users/domain/entities/user.entity'
 import { Application } from './application.entity'
 
@@ -7,46 +6,40 @@ import { Application } from './application.entity'
   name: 'offers'
 })
 export class Offer {
-  @ObjectIdColumn()
-    _id: ObjectId
+  @PrimaryGeneratedColumn()
+    id: number
 
-  @Column()
+  @Column({ name: 'title', type: 'varchar', length: 200 })
     title: string
 
-  @Column()
+  @Column({ name: 'description', type: 'text' })
     description: string
 
-  @Column()
+  @Column({ name: 'company', type: 'varchar', length: 50 })
     company: string
 
-  @Column()
+  @Column({ name: 'location', type: 'varchar', length: 50 })
     location: string
 
-  @Column()
+  @Column({ name: 'salary', type: 'varchar' })
     salary: string | number
 
-  @Column()
+  @Column({ name: 'publication_date', type: 'date' })
     publicationDate: Date
 
-  @Column()
+  @Column({ name: 'expiration_date', type: 'date' })
     expirationDate: Date
 
-  @Column()
+  @Column({ name: 'closed', type: 'boolean', default: false })
     closed: boolean
 
-  @Column((type) => User)
-    user: User
-
-  @Column((type) => Application)
-    applications: Application[]
-
-  @Column()
+  @Column({ name: 'expected_abilities', type: 'json', default: '[]' })
     expectedAbilities: string[]
 
-  @Expose({
-    name: 'id'
-  })
-  get id (): string {
-    return this._id.toString()
-  }
+  @OneToMany(() => Application, application => application.offer)
+    applications: Application[]
+
+  @ManyToOne(() => User, user => user.offers)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+    user: User
 }

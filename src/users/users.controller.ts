@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -40,20 +41,20 @@ export class UsersController {
   }
 
   @Get(':id')
-  async findOne (@Param('id') id: string): Promise<User> {
+  async findOne (@Param('id', ParseIntPipe) id: number): Promise<User> {
     return await this.usersService.findOne(id)
   }
 
   @Patch(':id')
   async update (
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
       @Body() updateUserDto: UpdateUserDto
   ): Promise<User> {
     return await this.usersService.update(id, updateUserDto)
   }
 
   @Delete(':id')
-  async remove (@Param('id') id: string): Promise<User> {
+  async remove (@Param('id', ParseIntPipe) id: number): Promise<User> {
     return await this.usersService.remove(id)
   }
 }

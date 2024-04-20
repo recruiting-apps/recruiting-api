@@ -44,7 +44,7 @@ export class AuthService {
     return user
   }
 
-  async changePassword (id: string, changePasswordDto: ChangePasswordDto): Promise<User> {
+  async changePassword (id: number, changePasswordDto: ChangePasswordDto): Promise<User> {
     return await this.usersService.changePassword(id, changePasswordDto.password)
   }
 

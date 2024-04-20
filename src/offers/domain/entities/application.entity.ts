@@ -1,31 +1,29 @@
 import { User } from 'src/users/domain/entities/user.entity'
-import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Status } from '../enum/status.enum'
-import { Expose } from 'class-transformer'
+import { Offer } from './offer.entity'
 
 @Entity({
   name: 'applications'
 })
 export class Application {
-  @ObjectIdColumn()
-    _id: ObjectId
+  @PrimaryGeneratedColumn()
+    id: number
 
-  @Column()
-    applicationDate: string
+  @Column({ name: 'application_date', type: 'date' })
+    applicationDate: Date
 
-  @Column()
+  @Column({ name: 'status', type: 'enum', enum: Status, default: Status.PENDING })
     status: Status
 
-  @Column()
+  @Column({ name: 'comments', type: 'text' })
     comments: string
 
-  @Column(() => User)
-    user: User
+  @ManyToOne(() => Offer, offer => offer.applications)
+  @JoinColumn({ name: 'offer_id', referencedColumnName: 'id' })
+    offer: Offer
 
-  @Expose({
-    name: 'id'
-  })
-  get id (): string {
-    return this._id.toString()
-  }
+  @ManyToOne(() => User, user => user.applications)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+    user: User
 }

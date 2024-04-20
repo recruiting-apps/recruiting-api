@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ConfigModule } from '@nestjs/config'
 import configuration from './config/app.config'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { fromEnv } from './config/database/database.config'
 import { UsersModule } from './users/users.module'
 import { OffersModule } from './offers/offers.module'
 import { AuthModule } from './auth/auth.module'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { AiModule } from './ai/ai.module'
+import { dataSourceOptions } from './config/database/database.config'
 
 @Module({
   imports: [
@@ -25,12 +25,9 @@ import { AiModule } from './ai/ai.module'
         }
       ]
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService): Record<string, unknown> => ({
-        ...fromEnv(configService)
-      }),
-      inject: [ConfigService]
+    TypeOrmModule.forRoot({
+      ...dataSourceOptions,
+      autoLoadEntities: true
     }),
     AuthModule,
     UsersModule,
