@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { UsersService } from './users.service'
 import { type User } from './domain/entities/user.entity'
 import { CreateUserDto, UpdateUserDto } from './domain/dto/user.dto'
+import { Public } from 'src/common/decorators/public.decorator'
 
 @ApiBearerAuth()
 @ApiTags('users')
@@ -35,6 +36,7 @@ export class UsersController {
     return await this.usersService.create(createUserDto)
   }
 
+  @Public()
   @Get('email')
   async findByEmail (@Query('email') email: string): Promise<User | null> {
     return await this.usersService.getOneByEmail(email)
