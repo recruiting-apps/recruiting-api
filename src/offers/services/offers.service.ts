@@ -27,7 +27,9 @@ export class OffersService {
       },
       relations: {
         user: true,
-        applications: true
+        applications: {
+          user: true
+        }
       }
     })
   }
