@@ -160,7 +160,12 @@ export class OffersService {
 
   async getBetterApplication (id: number): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
-      where: { id }
+      where: { id },
+      relations: {
+        applications: {
+          user: true
+        }
+      }
     })
 
     if (offer === null) {
