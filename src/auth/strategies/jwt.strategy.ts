@@ -9,11 +9,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly configService: ConfigService
   ) {
     const SECRET_KEY = configService.get<string>('jwt.secret', '')
+    const EXPIRES_IN = configService.get<string>('jwt.expiresIn', '10h')
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: SECRET_KEY
+      secretOrKey: SECRET_KEY,
+      expiresIn: EXPIRES_IN
     })
   }
 

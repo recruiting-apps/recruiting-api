@@ -12,7 +12,7 @@ import { JwtStrategy } from './strategies/jwt.strategy'
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => {
         const SECRET_KEY = configService.get<string>('jwt.secret', '')
-        const EXPIRES_IN = configService.get<string>('jwt.expiresIn', '')
+        const EXPIRES_IN = configService.get<string>('jwt.expiresIn', '10h')
 
         return {
           secret: SECRET_KEY,
