@@ -49,6 +49,13 @@ export class OffersController {
     return await this.offersService.getBetterApplication(id)
   }
 
+  @Get('my-applications')
+  async getMyApplications (
+    @CurrentUser() user: User
+  ): Promise<Offer[]> {
+    return await this.offersService.getMyApplications(user.id)
+  }
+
   @Get(':id')
   async findOne (@Param('id', ParseIntPipe) id: number): Promise<Offer> {
     return await this.offersService.findOne(id)

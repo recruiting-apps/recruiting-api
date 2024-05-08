@@ -142,6 +142,22 @@ export class OffersService {
     }
   }
 
+  async getMyApplications (userId: number): Promise<Offer[]> {
+    const offers = await this.offersRepository.find({
+      relations: {
+        user: true,
+        applications: {
+          user: true
+        }
+      }
+    })
+
+    return offers.filter((offer) => {
+      const application = offer.applications.find((item) => item.user.id === userId)
+      return application !== undefined
+    })
+  }
+
   async getBetterApplication (id: number): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
       where: { id }
