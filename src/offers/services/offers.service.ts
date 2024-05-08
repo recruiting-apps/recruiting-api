@@ -151,8 +151,8 @@ export class OffersService {
       throw new NotFoundException('Offer not found')
     }
 
-    // const application = await this.aiService.getBetterApplicantUsingAi(offer)
-    const application = offer.applications[Math.floor(Math.random() * offer.applications.length)]
+    const application = await this.aiService.getBetterApplicantUsingAi(offer)
+    // const application = offer.applications[Math.floor(Math.random() * offer.applications.length)]
 
     if (application === null) {
       throw new NotFoundException('Application not found')
