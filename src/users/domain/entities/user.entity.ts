@@ -41,13 +41,13 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
     address: string
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', default: '' })
     education: string
 
   @Column({ name: 'work_experience', type: 'text' })
     workExperience: string
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', default: '' })
     profession: string
 
   @Column({ name: 'abilities', type: 'json', default: '[]' })
