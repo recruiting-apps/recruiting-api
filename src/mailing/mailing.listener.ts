@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { MailingService } from './mailing.service'
 import { OnEvent } from '@nestjs/event-emitter'
-import { ApplicationApplyEmail, ApplicationChangeStatusEmail } from './types'
+import { ApplicationApplyEmail, ApplicationChangeStatusEmail, NewApplicationEmail } from './types'
 import { MailingEvents } from './events'
 
 @Injectable()
@@ -18,5 +18,10 @@ export class MailingListener {
   @OnEvent(MailingEvents.APPLICATION_CHANGE_STATUS, { async: true })
   async handleApplicationStatus (payload: ApplicationChangeStatusEmail) {
     await this.mailingService.sendChangeApplicationStatusEmail(payload)
+  }
+
+  @OnEvent(MailingEvents.NEW_APPLICATION, { async: true })
+  async handleNewApplication (payload: NewApplicationEmail) {
+    await this.mailingService.sendNewApplicationEmail(payload)
   }
 }

@@ -9,7 +9,7 @@ export class AiService {
     private readonly httpService: HttpService
   ) {}
 
-  async getBetterApplicantUsingAi (offer: Offer): Promise<Application | null> {
+  async getBetterApplicantUsingAi (offer: Offer): Promise<Application[]> {
     const API_URL = process.env.AI_API_URL ?? ''
 
     const url = `${API_URL}/find-better-applicant`
@@ -22,8 +22,6 @@ export class AiService {
         return response.data
       })
 
-    const betterApplication = response[0] ?? null
-
-    return betterApplication
+    return response
   }
 }

@@ -9,6 +9,7 @@ import { Application } from './domain/entities/application.entity'
 import { ApplicationsController } from './controller/application.controller'
 import { AiModule } from 'src/ai/ai.module'
 import { ApplicationEmailEmitter } from './emitter/application.email.emitter'
+import { OfferEmailEmitter } from './emitter/offer.email.emitter'
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { ApplicationEmailEmitter } from './emitter/application.email.emitter'
     UsersModule,
     AiModule
   ],
-  providers: [OffersService, ApplicationsService, ApplicationEmailEmitter],
+  providers: [OffersService, ApplicationsService, ApplicationEmailEmitter, OfferEmailEmitter],
   controllers: [OffersController, ApplicationsController]
 })
 export class OffersModule {}

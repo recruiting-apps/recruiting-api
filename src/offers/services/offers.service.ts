@@ -6,9 +6,9 @@ import { Offer } from '../domain/entities/offer.entity'
 import { type UpdateOfferDto, type CreateOfferDto } from '../domain/dto/offer.dto'
 import { UsersService } from 'src/users/users.service'
 import { ApplicationsService } from './application.service'
-import { Status } from '../domain/enum/status.enum'
 import { AiService } from 'src/ai/ai.service'
 import { type CreateApplicationDto } from '../domain/dto/application.dto'
+import { OfferEmailEmitter } from '../emitter/offer.email.emitter'
 
 @Injectable()
 export class OffersService {
@@ -16,7 +16,8 @@ export class OffersService {
     @InjectRepository(Offer) private readonly offersRepository: Repository<Offer>,
     private readonly applicationsService: ApplicationsService,
     private readonly usersService: UsersService,
-    private readonly aiService: AiService
+    private readonly aiService: AiService,
+    private readonly offerEmailEmitter: OfferEmailEmitter
   ) { }
 
   async findAll (userId: number, query: string = ''): Promise<Offer[]> {
@@ -145,6 +146,7 @@ export class OffersService {
     offer.applications.push(application)
 
     try {
+      if (offer.user.emailNotification) await this.offerEmailEmitter.emitNewApplicationEmail({ offer })
       return await this.offersRepository.save(offer)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
@@ -181,23 +183,26 @@ export class OffersService {
       throw new NotFoundException('Offer not found')
     }
 
-    const application = await this.aiService.getBetterApplicantUsingAi(offer)
+    const applications = await this.aiService.getBetterApplicantUsingAi(offer)
     // const application = offer.applications[Math.floor(Math.random() * offer.applications.length)]
 
-    if (application === null) {
-      throw new NotFoundException('Application not found')
-    }
+    // if (application === null) {
+    //   throw new NotFoundException('Application not found')
+    // }
 
-    application.status = Status.ACCEPTED
-    const otherApplications = offer.applications
-      .filter((item) => item.id !== application.id)
-      .map((item) => {
-        item.status = Status.REJECTED
-        return item
-      })
+    // application.status = Status.ACCEPTED
+    // const otherApplications = offer.applications
+    //   .filter((item) => item.id !== application.id)
+    //   .map((item) => {
+    //     item.status = Status.REJECTED
+    //     return item
+    //   })
 
     try {
-      await this.applicationsService.updateMany([application, ...otherApplications])
+      await this.applicationsService.updateMany(applications.map((item, index) => ({
+        ...item,
+        order: index
+      })))
       return await this.findOne(id)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))

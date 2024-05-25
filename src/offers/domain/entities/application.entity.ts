@@ -22,6 +22,9 @@ export class Application {
   @Column({ name: 'letter', type: 'text', nullable: true, default: null })
     letter: string | null
 
+  @Column({ name: 'order', type: 'int', default: 0 })
+    order: number
+
   @ManyToOne(() => Offer, offer => offer.applications)
   @JoinColumn({ name: 'offer_id', referencedColumnName: 'id' })
     offer: Offer
