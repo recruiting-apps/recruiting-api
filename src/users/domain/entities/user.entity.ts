@@ -41,11 +41,14 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
     address: string
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'text' })
     education: string
 
   @Column({ name: 'work_experience', type: 'text' })
     workExperience: string
+
+  @Column({ type: 'text' })
+    profession: string
 
   @Column({ name: 'abilities', type: 'json', default: '[]' })
     abilities: string[]
@@ -55,9 +58,6 @@ export class User {
 
   @Column({ name: 'profile_image_path', type: 'text' })
     profileImagePath: string
-
-  @Column({ type: 'varchar', length: 100 })
-    profession: string
 
   @Column({ name: 'google_account', default: false })
     googleAccount: boolean
