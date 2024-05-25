@@ -21,21 +21,22 @@ export class OffersService {
   ) { }
 
   async findAll (userId: number, query: string = ''): Promise<Offer[]> {
+    const hasUser = userId !== 0
     return await this.offersRepository.find({
       where: [
         {
           user: {
-            id: userId === 0 ? undefined : userId
+            id: !hasUser ? undefined : userId
           },
           title: query === '' ? undefined : ILike('%' + query + '%'),
-          closed: false
+          closed: !hasUser ? undefined : false
         },
         {
           user: {
             id: userId === 0 ? undefined : userId
           },
           description: query === '' ? undefined : ILike('%' + query + '%'),
-          closed: false
+          closed: !hasUser ? undefined : false
         }
       ],
       relations: {
