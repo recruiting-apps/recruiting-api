@@ -4,6 +4,7 @@ import { Exclude, Expose } from 'class-transformer'
 import { Role } from '../enums/role.enum'
 import { Application } from 'src/offers/domain/entities/application.entity'
 import { Offer } from 'src/offers/domain/entities/offer.entity'
+import { type PresentationLetter } from './presentation-letter'
 
 @Entity({
   name: 'users'
@@ -60,6 +61,12 @@ export class User {
 
   @Column({ name: 'google_account', default: false })
     googleAccount: boolean
+
+  @Column({ name: 'email_notification', default: true })
+    emailNotification: boolean
+
+  @Column({ name: 'presentation_letters', type: 'json', default: '[]' })
+    presentationLetters: PresentationLetter[]
 
   @OneToMany(() => Application, application => application.user)
     applications: Application[]

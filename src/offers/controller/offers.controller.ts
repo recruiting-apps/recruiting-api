@@ -30,9 +30,10 @@ export class OffersController {
   @ApiQuery({ name: 'userId', required: false })
   @Get()
   async findAll (
-    @Query('userId', ParseIntPipe) userId: number = 0
+    @Query('userId', ParseIntPipe) userId: number = 0,
+    @Query('query') query: string = ''
   ): Promise<Offer[]> {
-    return await this.offersService.findAll(userId)
+    return await this.offersService.findAll(userId, query)
   }
 
   @Post()

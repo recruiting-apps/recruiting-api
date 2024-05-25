@@ -5,6 +5,7 @@ import { Repository } from 'typeorm'
 import { type UpdateUserDto, type CreateUserDto } from './domain/dto/user.dto'
 import { getErrorMessage } from 'src/common/helpers/error.helper'
 import * as argon2 from 'argon2'
+import { type PresentationLetter } from './domain/entities/presentation-letter'
 
 @Injectable()
 export class UsersService {
@@ -114,6 +115,24 @@ export class UsersService {
 
     try {
       return await this.usersRepository.remove(user)
+    } catch (error) {
+      throw new InternalServerErrorException(getErrorMessage(error))
+    }
+  }
+
+  async updatePresentationLetters (id: number, presentationLetters: PresentationLetter[]): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { id }
+    })
+
+    if (user === null) {
+      throw new NotFoundException('User not found')
+    }
+
+    user.presentationLetters = presentationLetters
+
+    try {
+      return await this.usersRepository.save(user)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
     }

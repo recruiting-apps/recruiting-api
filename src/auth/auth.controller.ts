@@ -16,6 +16,7 @@ import { ChangePasswordDto } from './dto/change-password.dto'
 import { LoginDto } from './dto/login.dto'
 import { type LoginResponse } from './responses/login-response'
 import { CreateUserDto } from 'src/users/domain/dto/user.dto'
+import { GoogleRegisterDto } from './dto/google-register.dto'
 
 @ApiTags('authentication_authorization')
 @Controller('auth')
@@ -39,6 +40,15 @@ export class AuthController {
   })
   async register (@Body() registerDto: CreateUserDto): Promise<User> {
     return await this.authService.register(registerDto)
+  }
+
+  @Public()
+  @Post('google')
+  @ApiOperation({
+    summary: 'Register a new user with Google'
+  })
+  async registerWithGoogle (@Body() googleRegister: GoogleRegisterDto): Promise<LoginResponse> {
+    return await this.authService.registerWithGoogle(googleRegister)
   }
 
   @Public()

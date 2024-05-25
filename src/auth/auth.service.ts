@@ -7,6 +7,7 @@ import { type LoginResponse } from './responses/login-response'
 import { type User } from 'src/users/domain/entities/user.entity'
 import { type ChangePasswordDto } from './dto/change-password.dto'
 import { type CreateUserDto } from 'src/users/domain/dto/user.dto'
+import { type GoogleRegisterDto } from './dto/google-register.dto'
 
 @Injectable()
 export class AuthService {
@@ -25,7 +26,7 @@ export class AuthService {
     )
 
     if (!isValidPassword) {
-      throw new BadRequestException('Credenciales incorrectas')
+      throw new BadRequestException('Invalid credentials')
     }
 
     const accessToken = this.jwtService.sign({
@@ -36,6 +37,41 @@ export class AuthService {
     return {
       tokens: { accessToken },
       authenticatedUser: user
+    }
+  }
+
+  async registerWithGoogle ({ email, user }: GoogleRegisterDto): Promise<LoginResponse> {
+    const userExists = await this.usersService.getOneByEmail(email)
+
+    if (userExists) {
+      const accessToken = this.jwtService.sign({
+        email: userExists.email,
+        sub: userExists.id
+      })
+
+      return {
+        tokens: { accessToken },
+        authenticatedUser: userExists
+      }
+    }
+
+    if (user === undefined) {
+      throw new BadRequestException('User not found')
+    }
+
+    const newUser = await this.usersService.create({
+      ...user,
+      email
+    })
+
+    const accessToken = this.jwtService.sign({
+      email: newUser.email,
+      sub: newUser.id
+    })
+
+    return {
+      tokens: { accessToken },
+      authenticatedUser: newUser
     }
   }
 

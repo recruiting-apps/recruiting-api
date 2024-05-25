@@ -16,8 +16,11 @@ export class Application {
   @Column({ name: 'status', type: 'enum', enum: Status, default: Status.PENDING })
     status: Status
 
-  @Column({ name: 'comments', type: 'text' })
+  @Column({ name: 'comments', type: 'text', default: '' })
     comments: string
+
+  @Column({ name: 'letter', type: 'text', nullable: true, default: null })
+    letter: string | null
 
   @ManyToOne(() => Offer, offer => offer.applications)
   @JoinColumn({ name: 'offer_id', referencedColumnName: 'id' })

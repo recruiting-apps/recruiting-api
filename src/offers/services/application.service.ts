@@ -6,13 +6,15 @@ import { type UpdateApplicationDto, type CreateApplicationDto } from '../domain/
 import { getErrorMessage } from 'src/common/helpers/error.helper'
 import { UsersService } from 'src/users/users.service'
 import { Offer } from '../domain/entities/offer.entity'
+import { ApplicationEmailEmitter } from '../emitter/application.email.emitter'
 
 @Injectable()
 export class ApplicationsService {
   constructor (
     @InjectRepository(Application) private readonly applicationRepository: Repository<Application>,
     @InjectRepository(Offer) private readonly offerRepository: Repository<Offer>,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly applicationEmailEmitter: ApplicationEmailEmitter
   ) {}
 
   async findAll (userId: number): Promise<Application[]> {
@@ -63,6 +65,7 @@ export class ApplicationsService {
     })
 
     try {
+      if (user.emailNotification) await this.applicationEmailEmitter.emitApplicationApplyEmail({ user, offer })
       return await this.applicationRepository.save(application)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
@@ -89,6 +92,20 @@ export class ApplicationsService {
 
   async updateMany (applications: Application[]): Promise<Application[]> {
     try {
+      await Promise.all(applications.map(async (application) => {
+        const app = await this.applicationRepository.findOne({
+          where: { id: application.id },
+          relations: ['user', 'offer']
+        })
+
+        if (app === null) return
+
+        const { user, offer } = app
+
+        if (!user.emailNotification) return
+
+        await this.applicationEmailEmitter.emitApplicationChangeStatusEmail({ user, offer, status: application.status })
+      }))
       return await this.applicationRepository.save(applications)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))

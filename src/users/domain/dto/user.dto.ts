@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import { IsArray, IsBoolean, IsDateString, IsOptional, IsString } from 'class-validator'
+import { type PresentationLetterDto } from './presentation-letter.dto'
 
 export class CreateUserDto {
   @ApiProperty()
@@ -70,6 +71,16 @@ export class CreateUserDto {
   @IsOptional()
   @IsBoolean()
     googleAccount: boolean
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+    emailNotification: boolean
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+    presentationLetters: PresentationLetterDto[]
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

@@ -1,13 +1,14 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { getErrorMessage } from 'src/common/helpers/error.helper'
-import { Repository } from 'typeorm'
+import { ILike, Repository } from 'typeorm'
 import { Offer } from '../domain/entities/offer.entity'
 import { type UpdateOfferDto, type CreateOfferDto } from '../domain/dto/offer.dto'
 import { UsersService } from 'src/users/users.service'
 import { ApplicationsService } from './application.service'
 import { Status } from '../domain/enum/status.enum'
 import { AiService } from 'src/ai/ai.service'
+import { type CreateApplicationDto } from '../domain/dto/application.dto'
 
 @Injectable()
 export class OffersService {
@@ -18,13 +19,24 @@ export class OffersService {
     private readonly aiService: AiService
   ) { }
 
-  async findAll (userId: number): Promise<Offer[]> {
+  async findAll (userId: number, query: string = ''): Promise<Offer[]> {
     return await this.offersRepository.find({
-      where: {
-        user: {
-          id: userId === 0 ? undefined : userId
+      where: [
+        {
+          user: {
+            id: userId === 0 ? undefined : userId
+          },
+          title: query === '' ? undefined : ILike('%' + query + '%'),
+          closed: false
+        },
+        {
+          user: {
+            id: userId === 0 ? undefined : userId
+          },
+          description: query === '' ? undefined : ILike('%' + query + '%'),
+          closed: false
         }
-      },
+      ],
       relations: {
         user: true,
         applications: {
@@ -101,7 +113,7 @@ export class OffersService {
     }
   }
 
-  async apply (id: number, userId: number): Promise<Offer> {
+  async apply (id: number, userId: number, applicationDto: CreateApplicationDto): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
       where: { id },
       relations: {
@@ -128,10 +140,7 @@ export class OffersService {
       throw new BadRequestException('You need to upload your CV before applying to an offer')
     }
 
-    const application = await this.applicationsService.create(userId, offer.id, {
-      comments: '',
-      status: Status.PENDING
-    })
+    const application = await this.applicationsService.create(userId, offer.id, applicationDto)
 
     offer.applications.push(application)
 

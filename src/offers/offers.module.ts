@@ -8,6 +8,7 @@ import { ApplicationsService } from './services/application.service'
 import { Application } from './domain/entities/application.entity'
 import { ApplicationsController } from './controller/application.controller'
 import { AiModule } from 'src/ai/ai.module'
+import { ApplicationEmailEmitter } from './emitter/application.email.emitter'
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { AiModule } from 'src/ai/ai.module'
     UsersModule,
     AiModule
   ],
-  providers: [OffersService, ApplicationsService],
+  providers: [OffersService, ApplicationsService, ApplicationEmailEmitter],
   controllers: [OffersController, ApplicationsController]
 })
 export class OffersModule {}
