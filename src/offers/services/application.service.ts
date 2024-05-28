@@ -4,7 +4,7 @@ import { Repository } from 'typeorm'
 import { Application } from '../domain/entities/application.entity'
 import { type UpdateApplicationDto, type CreateApplicationDto } from '../domain/dto/application.dto'
 import { getErrorMessage } from 'src/common/helpers/error.helper'
-import { UsersService } from 'src/users/users.service'
+import { UsersService } from 'src/users/services/users.service'
 import { Offer } from '../domain/entities/offer.entity'
 import { ApplicationEmailEmitter } from '../emitter/application.email.emitter'
 

@@ -4,11 +4,12 @@ import { getErrorMessage } from 'src/common/helpers/error.helper'
 import { ILike, Repository } from 'typeorm'
 import { Offer } from '../domain/entities/offer.entity'
 import { type UpdateOfferDto, type CreateOfferDto } from '../domain/dto/offer.dto'
-import { UsersService } from 'src/users/users.service'
+import { UsersService } from 'src/users/services/users.service'
 import { ApplicationsService } from './application.service'
 import { AiService } from 'src/ai/ai.service'
 import { type CreateApplicationDto } from '../domain/dto/application.dto'
 import { OfferEmailEmitter } from '../emitter/offer.email.emitter'
+import { Status } from '../domain/enum/status.enum'
 
 @Injectable()
 export class OffersService {
@@ -22,21 +23,19 @@ export class OffersService {
 
   async findAll (userId: number, query: string = ''): Promise<Offer[]> {
     const hasUser = userId !== 0
-    return await this.offersRepository.find({
+    const offers = await this.offersRepository.find({
       where: [
         {
           user: {
             id: !hasUser ? undefined : userId
           },
-          title: query === '' ? undefined : ILike('%' + query + '%'),
-          closed: !hasUser ? undefined : false
+          title: query === '' ? undefined : ILike('%' + query + '%')
         },
         {
           user: {
             id: userId === 0 ? undefined : userId
           },
-          description: query === '' ? undefined : ILike('%' + query + '%'),
-          closed: !hasUser ? undefined : false
+          description: query === '' ? undefined : ILike('%' + query + '%')
         }
       ],
       relations: {
@@ -45,6 +44,12 @@ export class OffersService {
           user: true
         }
       }
+    })
+
+    return offers.filter((offer) => {
+      if (hasUser) return true
+
+      return !offer.closed
     })
   }
 
@@ -168,6 +173,44 @@ export class OffersService {
       const application = offer.applications.find((item) => item.user.id === userId)
       return application !== undefined
     })
+  }
+
+  async selectApplication (offerId: number, applicationId: number): Promise<Offer> {
+    const offer = await this.offersRepository.findOne({
+      where: { id: offerId },
+      relations: {
+        user: true,
+        applications: {
+          user: true
+        }
+      }
+    })
+
+    if (offer === null) {
+      throw new NotFoundException('Offer not found')
+    }
+
+    const application = offer.applications.find((item) => item.id === applicationId)
+
+    if (application === undefined) {
+      throw new NotFoundException('Application not found')
+    }
+
+    application.status = Status.ACCEPTED
+
+    const otherApplications = offer.applications
+      .filter((item) => item.id !== application.id)
+      .map((item) => {
+        item.status = Status.REJECTED
+        return item
+      })
+
+    try {
+      await this.applicationsService.updateMany([application, ...otherApplications])
+      return await this.findOne(offerId)
+    } catch (error) {
+      throw new InternalServerErrorException(getErrorMessage(error))
+    }
   }
 
   async getBetterApplication (id: number): Promise<Offer> {

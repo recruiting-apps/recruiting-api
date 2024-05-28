@@ -1,7 +1,7 @@
 import * as argon2 from 'argon2'
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt/dist'
-import { UsersService } from 'src/users/users.service'
+import { UsersService } from 'src/users/services/users.service'
 import { type LoginDto } from './dto/login.dto'
 import { type LoginResponse } from './responses/login-response'
 import { type User } from 'src/users/domain/entities/user.entity'

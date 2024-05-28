@@ -1,4 +1,4 @@
-import { Body, ClassSerializerInterceptor, Controller, Get, Param, ParseIntPipe, Post, UseInterceptors } from '@nestjs/common'
+import { Body, ClassSerializerInterceptor, Controller, Get, Param, ParseIntPipe, Patch, Post, UseInterceptors } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { OffersService } from '../services/offers.service'
 import { type Offer } from '../domain/entities/offer.entity'
@@ -29,5 +29,13 @@ export class ApplicationsController {
       @CurrentUser() user: User
   ): Promise<Offer> {
     return await this.offersService.apply(offerId, user.id, applicationDto)
+  }
+
+  @Patch(':id/select-application')
+  async selectApplication (
+    @Param('offerId', ParseIntPipe) offerId: number,
+      @Param('id', ParseIntPipe) id: number
+  ): Promise<Offer> {
+    return await this.offersService.selectApplication(offerId, id)
   }
 }

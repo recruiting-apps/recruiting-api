@@ -1,11 +1,11 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { User } from './domain/entities/user.entity'
+import { User } from '../domain/entities/user.entity'
 import { Repository } from 'typeorm'
-import { type UpdateUserDto, type CreateUserDto } from './domain/dto/user.dto'
+import { type UpdateUserDto, type CreateUserDto } from '../domain/dto/user.dto'
 import { getErrorMessage } from 'src/common/helpers/error.helper'
 import * as argon2 from 'argon2'
-import { type PresentationLetter } from './domain/entities/presentation-letter'
+import { type PresentationLetter } from '../domain/entities/presentation-letter'
 
 @Injectable()
 export class UsersService {

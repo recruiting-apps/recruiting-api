@@ -12,9 +12,9 @@ import {
   UseInterceptors
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
-import { UsersService } from './users.service'
-import { type User } from './domain/entities/user.entity'
-import { CreateUserDto, UpdateUserDto } from './domain/dto/user.dto'
+import { UsersService } from '../services/users.service'
+import { type User } from '../domain/entities/user.entity'
+import { CreateUserDto, UpdateUserDto } from '../domain/dto/user.dto'
 import { Public } from 'src/common/decorators/public.decorator'
 
 @ApiBearerAuth()

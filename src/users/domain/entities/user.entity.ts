@@ -5,6 +5,7 @@ import { Role } from '../enums/role.enum'
 import { Application } from 'src/offers/domain/entities/application.entity'
 import { Offer } from 'src/offers/domain/entities/offer.entity'
 import { type PresentationLetter } from './presentation-letter'
+import { AdditionalFile } from './additional-file.entity'
 
 @Entity({
   name: 'users'
@@ -73,6 +74,9 @@ export class User {
 
   @OneToMany(() => Offer, offer => offer.user)
     offers: Offer[]
+
+  @OneToMany(() => AdditionalFile, file => file.user, { eager: true })
+    files: AdditionalFile[]
 
   @Expose()
   get fullName (): string {
