@@ -6,6 +6,7 @@ import { type UpdateUserDto, type CreateUserDto } from '../domain/dto/user.dto'
 import { getErrorMessage } from 'src/common/helpers/error.helper'
 import * as argon2 from 'argon2'
 import { type PresentationLetter } from '../domain/entities/presentation-letter'
+import { Role } from '../domain/enums/role.enum'
 
 @Injectable()
 export class UsersService {
@@ -15,6 +16,22 @@ export class UsersService {
 
   async findAll (): Promise<User[]> {
     return await this.usersRepository.find()
+  }
+
+  async findByAbilities (abilitiesQuery: string): Promise<User[]> {
+    const users = await this.usersRepository.find({
+      where: {
+        role: Role.APPLICANT
+      }
+    })
+
+    const abilities = abilitiesQuery.split(/[\s\-,]+/).map(ability => ability.toLowerCase())
+
+    return users.filter(user => user.abilities.some((ability) => {
+      return abilities.some((queryAbility) => {
+        return ability.toLowerCase().includes(queryAbility)
+      })
+    }))
   }
 
   async findByEmail (email: string): Promise<User> {

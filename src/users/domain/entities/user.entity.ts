@@ -28,7 +28,7 @@ export class User {
     password: string
 
   @Column({ enum: Role, default: Role.APPLICANT })
-    role: string
+    role: Role
 
   @Column({ name: 'born_date', type: 'date' })
     bornDate: Date

@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
-import { IsArray, IsBoolean, IsDateString, IsOptional, IsString } from 'class-validator'
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsOptional, IsString } from 'class-validator'
 import { type PresentationLetterDto } from './presentation-letter.dto'
+import { Role } from '../enums/role.enum'
 
 export class CreateUserDto {
   @ApiProperty()
@@ -21,8 +22,8 @@ export class CreateUserDto {
     password: string
 
   @ApiProperty()
-  @IsString()
-    role: string
+  @IsEnum(Role)
+    role: Role
 
   @ApiProperty()
   @IsDateString()

@@ -31,6 +31,11 @@ export class UsersController {
     return await this.usersService.findAll()
   }
 
+  @Get('abilities')
+  async findByAbilities (@Query('abilities') abilitiesQuery: string): Promise<User[]> {
+    return await this.usersService.findByAbilities(abilitiesQuery)
+  }
+
   @Post()
   async create (@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.usersService.create(createUserDto)
