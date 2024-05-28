@@ -1,17 +1,9 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { Type } from 'class-transformer'
-import { IsEmail, IsOptional, IsString, ValidateNested } from 'class-validator'
-import { CreateUserDto } from 'src/users/domain/dto/user.dto'
+import { ApiProperty } from '@nestjs/swagger'
+import { IsEmail, IsString } from 'class-validator'
 
 export class GoogleRegisterDto {
   @ApiProperty()
   @IsString()
   @IsEmail()
     email: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => CreateUserDto)
-    user?: CreateUserDto
 }

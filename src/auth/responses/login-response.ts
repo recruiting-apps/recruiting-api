@@ -6,5 +6,5 @@ export interface Tokens {
 
 export interface LoginResponse {
   tokens?: Tokens
-  authenticatedUser: User
+  authenticatedUser: User | null
 }

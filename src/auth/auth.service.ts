@@ -40,7 +40,7 @@ export class AuthService {
     }
   }
 
-  async registerWithGoogle ({ email, user }: GoogleRegisterDto): Promise<LoginResponse> {
+  async registerWithGoogle ({ email }: GoogleRegisterDto): Promise<LoginResponse> {
     const userExists = await this.usersService.getOneByEmail(email)
 
     if (userExists) {
@@ -55,23 +55,9 @@ export class AuthService {
       }
     }
 
-    if (user === undefined) {
-      throw new BadRequestException('User not found')
-    }
-
-    const newUser = await this.usersService.create({
-      ...user,
-      email
-    })
-
-    const accessToken = this.jwtService.sign({
-      email: newUser.email,
-      sub: newUser.id
-    })
-
     return {
-      tokens: { accessToken },
-      authenticatedUser: newUser
+      tokens: { accessToken: '' },
+      authenticatedUser: null
     }
   }
 
