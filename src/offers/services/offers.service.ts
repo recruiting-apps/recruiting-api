@@ -121,6 +121,12 @@ export class OffersService {
   }
 
   async apply (id: number, userId: number, applicationDto: CreateApplicationDto): Promise<Offer> {
+    const userToApply = await this.usersService.findOne(userId)
+
+    if (userToApply.cvPath === '' || userToApply.cvPath === null) {
+      throw new BadRequestException('You need to upload your CV before applying to an offer')
+    }
+
     const offer = await this.offersRepository.findOne({
       where: { id },
       relations: {
@@ -135,16 +141,12 @@ export class OffersService {
       throw new NotFoundException('Offer not found')
     }
 
-    const { user, applications } = offer
+    const { applications } = offer
 
-    const doesUserAlreadyApplied = applications.some((item) => item.user.id === userId)
+    const doesUserAlreadyApplied = applications.some((item) => item.user.id === userToApply.id)
 
     if (doesUserAlreadyApplied) {
       throw new BadRequestException('You already applied to this offer')
-    }
-
-    if (user.cvPath === '' || user.cvPath === null) {
-      throw new BadRequestException('You need to upload your CV before applying to an offer')
     }
 
     const application = await this.applicationsService.create(userId, offer.id, applicationDto)
