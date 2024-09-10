@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import configuration from './config/app.config'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { TypeOrmModule } from '@nestjs/typeorm'
@@ -9,10 +9,10 @@ import { AuthModule } from './auth/auth.module'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { AiModule } from './ai/ai.module'
-import { dataSourceOptions } from './config/database/database.config'
 import { NotificationsModule } from './notifications/notifications.module'
 import { MailingModule } from './mailing/mailing.module'
 import { EventEmitterModule } from '@nestjs/event-emitter'
+import { databaseConfig } from './config/database/database.config'
 
 @Module({
   imports: [
@@ -29,9 +29,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
         }
       ]
     }),
-    TypeOrmModule.forRoot({
-      ...dataSourceOptions,
-      autoLoadEntities: true
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: databaseConfig
     }),
     AuthModule,
     UsersModule,
