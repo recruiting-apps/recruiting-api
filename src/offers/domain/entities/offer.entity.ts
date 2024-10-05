@@ -33,6 +33,9 @@ export class Offer {
   @Column({ name: 'closed', type: 'boolean', default: false })
     closed: boolean
 
+  @Column({ name: 'sorted', type: 'boolean', default: false })
+    sorted: boolean
+
   @Column({ name: 'expected_abilities', type: 'json', default: '[]' })
     expectedAbilities: string[]
 

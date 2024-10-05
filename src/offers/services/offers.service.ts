@@ -230,25 +230,17 @@ export class OffersService {
     }
 
     const applications = await this.aiService.getBetterApplicantUsingAi(offer)
-    // const application = offer.applications[Math.floor(Math.random() * offer.applications.length)]
-
-    // if (application === null) {
-    //   throw new NotFoundException('Application not found')
-    // }
-
-    // application.status = Status.ACCEPTED
-    // const otherApplications = offer.applications
-    //   .filter((item) => item.id !== application.id)
-    //   .map((item) => {
-    //     item.status = Status.REJECTED
-    //     return item
-    //   })
 
     try {
       await this.applicationsService.updateMany(applications.map((item, index) => ({
         ...item,
         order: index
       })))
+
+      await this.offersRepository.save({
+        ...offer,
+        sorted: true
+      })
       return await this.findOne(id)
     } catch (error) {
       throw new InternalServerErrorException(getErrorMessage(error))
