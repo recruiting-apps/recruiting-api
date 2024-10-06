@@ -1,5 +1,5 @@
 import { AuditModel } from 'src/common/models/audit.model'
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { User } from './user.entity'
 import { Exclude } from 'class-transformer'
 
@@ -10,10 +10,10 @@ export class AdditionalFile extends AuditModel {
   @PrimaryGeneratedColumn()
     id: number
 
-  @PrimaryColumn({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 100 })
     name: string
 
-  @PrimaryColumn({ type: 'text', default: '' })
+  @Column({ type: 'text', default: '' })
     path: string
 
   @Exclude()
