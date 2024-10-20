@@ -73,6 +73,18 @@ export class OffersService {
 
   async create (userId: number, offerDto: CreateOfferDto): Promise<Offer> {
     const user = await this.usersService.findOne(userId)
+
+    const existingOffer = await this.offersRepository.findOne({
+      where: {
+        title: ILike(offerDto.title),
+        company: ILike(offerDto.company)
+      }
+    })
+
+    if (existingOffer !== null) {
+      throw new BadRequestException('Offer already exists')
+    }
+
     const offer = this.offersRepository.create({
       ...offerDto,
       user,
@@ -88,11 +100,18 @@ export class OffersService {
 
   async update (id: number, offerDto: UpdateOfferDto): Promise<Offer> {
     const offer = await this.offersRepository.findOne({
-      where: { id }
+      where: { id },
+      relations: { applications: true }
     })
 
     if (offer === null) {
       throw new NotFoundException('Offer not found')
+    }
+
+    if (offer.closed === false && offerDto.closed === true) {
+      if (offer.applications.length === 0) {
+        throw new BadRequestException('You cannot close an offer without applications')
+      }
     }
 
     const offerUpdated = this.offersRepository.merge(offer, offerDto)
