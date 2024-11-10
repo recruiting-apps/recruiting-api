@@ -10,6 +10,7 @@ import { AiService } from 'src/ai/ai.service'
 import { type CreateApplicationDto } from '../domain/dto/application.dto'
 import { OfferEmailEmitter } from '../emitter/offer.email.emitter'
 import { Status } from '../domain/enum/status.enum'
+import { Application } from '../domain/entities/application.entity'
 
 @Injectable()
 export class OffersService {
@@ -250,11 +251,25 @@ export class OffersService {
 
     const applications = await this.aiService.getBetterApplicantUsingAi(offer)
 
-    try {
-      await this.applicationsService.updateMany(applications.map((item, index) => ({
+    const newApplications: Application[] = []
+
+    applications.forEach((item, index) => {
+      const newItem = {
         ...item,
         order: index
-      })))
+      }
+
+      if (index === 0) {
+        newItem.status = Status.ACCEPTED
+      } else {
+        newItem.status = Status.REJECTED
+      }
+
+      newApplications.push(newItem)
+    })
+
+    try {
+      await this.applicationsService.updateMany(newApplications)
 
       await this.offersRepository.save({
         ...offer,
